@@ -1,7 +1,11 @@
 package com.example.android.movies;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.content.res.TypedArrayUtils;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -18,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView moviesList;
     private ArrayList<String> movieTitles;
     private ArrayList<String> urlList;
+    private AlertDialog dialog;
+    private int itemdelete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +47,40 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("REMOVIN' A MOVIE!");
+        alert.setMessage("Are you sure you want to remove this movie?");
+        alert.setPositiveButton("YES!", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                movieTitles.remove(itemdelete);
+                urlList.remove(itemdelete);
+
+                ArrayAdapter<String> adapter;
+                adapter = new ArrayAdapter<String>(getApplicationContext(), R.layout.list_item_view, movieTitles);
+                moviesList.setAdapter(adapter);
+            }
+        });
+        alert.setNegativeButton("NAH", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        dialog=alert.create();
+
+        moviesList.setOnItemLongClickListener(
+                new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        itemdelete=i;
+                        dialog.show();
+                        return true;
+                    }
+                }
+        );
+
+
         for (int i=0; i<movies.length; i++) {
             movieTitles.add(movies[i]);
             urlList.add(urls[i]);
@@ -55,11 +95,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        movieTitles.add(data.getStringExtra("Title"));
+        movieTitles.add(data.getStringExtra("TITLE"));
         urlList.add(data.getStringExtra("CODE"));
 
         ArrayAdapter<String> adapter;
-        adapter = new ArrayAdapter<String>(this, R.layout.list_item_view, movies);
+        adapter = new ArrayAdapter<String>(this, R.layout.list_item_view, movieTitles);
         moviesList.setAdapter(adapter);
 
     }
