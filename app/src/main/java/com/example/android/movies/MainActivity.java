@@ -1,9 +1,12 @@
 package com.example.android.movies;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.TypedArrayUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +17,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> urlList;
     private AlertDialog dialog;
     private int itemdelete;
+    private SharedPreferences p;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +37,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         moviesList=findViewById(R.id.movieList);
-        ArrayAdapter<String> adapter;
-        adapter = new ArrayAdapter<String>(this, R.layout.list_item_view, movies);
-        moviesList.setAdapter(adapter);
+
         movieTitles = new ArrayList<String>();
         urlList = new ArrayList<String>();
+        p = getPreferences(Context.MODE_PRIVATE);
 
         moviesList.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
@@ -46,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        for (int i=0; i<p.getInt("NEWSIZE",-1); i++) {
+            movieTitles.add(p.getString("TITLE"+i,"error"));
+            urlList.add(p.getString("CODE"+i, "error"));
+        }
+
+        ArrayAdapter<String> adapter;
+        adapter = new ArrayAdapter<String>(this, R.layout.list_item_view, movieTitles);
+        moviesList.setAdapter(adapter);
+
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("REMOVIN' A MOVIE!");
@@ -81,11 +96,23 @@ public class MainActivity extends AppCompatActivity {
         );
 
 
-        for (int i=0; i<movies.length; i++) {
+        /* for (int i=0; i<movies.length; i++) {
             movieTitles.add(movies[i]);
             urlList.add(urls[i]);
-        }
+        }*/
 
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        SharedPreferences.Editor e = p.edit();
+        for (int i=0; i < movieTitles.size(); i++) {
+            e.putString("TITLE"+i, movieTitles.get(i));
+            e.putString("CODE"+i, urlList.get(i));
+            e.putInt("NEWSIZE",movieTitles.size());
+        }
+        e.apply();
     }
 
     public void addButtonPressed (View v) {
